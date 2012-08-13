@@ -38,18 +38,6 @@ module Hashie
         self.defaults.delete property_name
       end
 
-      unless instance_methods.map { |m| m.to_s }.include?("#{property_name}=")
-        class_eval <<-ACCESSORS
-          def #{property_name}(&block)
-            self.[](#{property_name.to_s.inspect}, &block)
-          end
-
-          def #{property_name}=(value)
-            self.[]=(#{property_name.to_s.inspect}, value)
-          end
-        ACCESSORS
-      end
-
       if defined? @subclasses
         @subclasses.each { |klass| klass.property(property_name, options) }
       end
