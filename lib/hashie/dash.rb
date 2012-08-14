@@ -38,6 +38,12 @@ module Hashie
         self.defaults.delete property_name
       end
 
+      if options.has_key?(:regexp)
+        self.regexps[property_name] = options[:regexp]
+      elsif self.regexps.has_key?(property_name)
+        self.regexps.delete property_name
+      end
+
       if defined? @subclasses
         @subclasses.each { |klass| klass.property(property_name, options) }
       end
@@ -45,11 +51,12 @@ module Hashie
     end
 
     class << self
-      attr_reader :properties, :defaults
+      attr_reader :properties, :defaults, :regexps
       attr_reader :required_properties
     end
     instance_variable_set('@properties', Set.new)
     instance_variable_set('@defaults', {})
+    instance_variable_set('@regexps', {})
     instance_variable_set('@required_properties', Set.new)
 
     def self.inherited(klass)
@@ -57,6 +64,7 @@ module Hashie
       (@subclasses ||= Set.new) << klass
       klass.instance_variable_set('@properties', self.properties.dup)
       klass.instance_variable_set('@defaults', self.defaults.dup)
+      klass.instance_variable_set('@regexps', self.regexps.dup)
       klass.instance_variable_set('@required_properties', self.required_properties.dup)
     end
 
@@ -105,6 +113,7 @@ module Hashie
     def []=(property, value)
       assert_property_required! property, value
       assert_property_exists! property
+      assert_property_regexp! property, value
       super(property.to_s, value)
     end
 
@@ -119,6 +128,13 @@ module Hashie
       def assert_required_properties_set!
         self.class.required_properties.each do |required_property|
           assert_property_set!(required_property)
+        end
+      end
+
+      def assert_property_regexp!(property, value)
+        regexp = self.class.regexps[property]
+        if regexp and !(regexp =~ value)
+          raise ArgumentError, "The property '#{property}' value (#{value}) must match regexp /#{regexp}/."
         end
       end
 
