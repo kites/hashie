@@ -134,16 +134,32 @@ module Hashie
       def assert_property_validate!(property, value)
         validate = self.class.validates[property.to_sym] || self.class.validates[property.to_s]
 
+        # https://github.com/amazonwebservices/aws-sdk-for-ruby/blob/master/lib/aws/dynamo_db/types.rb
         return if validate.nil?
-        if validate == :number && !(value.kind_of?(Numeric))
-          raise ArgumentError, "The property '#{property}' is not Numeric."
-        elsif validate.kind_of?(Regexp) && !(value =~ regexp)
-          raise ArgumentError, "The property '#{property}' value (#{value}) must match regexp /#{regexp}/."
+        if validate == :n && !(value.kind_of?(Numeric))
+          raise ArgumentError, "The property '#{property}' v(#{value}) is not Numeric, it is a #{value.class}."
+        elsif validate == :s && !(value.kind_of?(String))
+          raise ArgumentError, "The property '#{property}' v(#{value}) is not a String, it is a #{value.class}."
+        elsif validate.kind_of?(Regexp) && !(value =~ validate)
+          raise ArgumentError, "The property '#{property}' v(#{value}) must match regexp /#{validate}/."
+        elsif validate == :ss || validate == :ns
+          if value.respond_to?(:each)
+            raise ArgumentError, "The property '#{property}' is not a Collection." 
+          end
+
+          value.each do |v| 
+            if v.respond_to?(each)
+              raise ArgumentError, "The property '#{property}' has nested collections."
+            elsif (validate == :ss && !(value.kind_of?(String))) or
+                  (validate == :ns && !(value.kind_of?(Numeric)))
+              raise ArgumentError, "The property '#{property}' has elements not of type #{validate.to_s}."
+            end 
+          end
         end
       end
 
       def assert_property_set!(property)
-        if send(property).nil?
+        if self[property.to_sym].nil? && self[property.to_s].nil?
           raise ArgumentError, "The property '#{property}' is required for this Dash."
         end
       end
