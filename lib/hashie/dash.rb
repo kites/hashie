@@ -132,7 +132,7 @@ module Hashie
       end
 
       def assert_property_regexp!(property, value)
-        regexp = self.class.regexps[property]
+        regexp = self.class.regexps[property.to_sym] || self.class.regexps[property.to_s]
         if regexp and !(regexp =~ value)
           raise ArgumentError, "The property '#{property}' value (#{value}) must match regexp /#{regexp}/."
         end
