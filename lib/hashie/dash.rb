@@ -143,7 +143,7 @@ module Hashie
         elsif validate.kind_of?(Regexp) && !(value =~ validate)
           raise ArgumentError, "The property '#{property}' v(#{value}) must match regexp /#{validate}/."
         elsif validate == :ss || validate == :ns
-          if value.respond_to?(:each)
+          if !value.respond_to?(:each)
             raise ArgumentError, "The property '#{property}' is not a Collection." 
           end
 
