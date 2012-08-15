@@ -146,13 +146,18 @@ module Hashie
           if !value.respond_to?(:each)
             raise ArgumentError, "The property '#{property}' is not a Collection." 
           end
+          puts "validating".on_red
+          pp value
 
           value.each do |v| 
             if v.respond_to?(:each)
-              raise ArgumentError, "The property '#{property}' has nested collections."
-            elsif (validate == :ss && !(value.kind_of?(String))) or
-                  (validate == :ns && !(value.kind_of?(Numeric)))
-              raise ArgumentError, "The property '#{property}' has elements not of type #{validate.to_s}."
+              raise ArgumentError, "The property '#{property}' v(#{value}) has nested collections."
+            elsif (validate == :ss && !(v.kind_of?(String))) or
+                  (validate == :ns && !(v.kind_of?(Numeric)))
+              pp v
+              pp v.kind_of?(String)
+              pp v.kind_of?(Numeric)
+              raise ArgumentError, "The property '#{property}' v(#{value}) has elements not of type #{validate.to_s}."
             end 
           end
         end
