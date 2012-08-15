@@ -148,7 +148,7 @@ module Hashie
           end
 
           value.each do |v| 
-            if v.respond_to?(each)
+            if v.respond_to?(:each)
               raise ArgumentError, "The property '#{property}' has nested collections."
             elsif (validate == :ss && !(value.kind_of?(String))) or
                   (validate == :ns && !(value.kind_of?(Numeric)))
